@@ -1,3 +1,56 @@
+## Version 0.4.1 (2017/11/23)
+
+### Issues Closed
+
+* [Issue 73](https://github.com/spyder-ide/pywinpty/issues/73) - Copy winpty binaries on Appveyor upload
+* [Issue 72](https://github.com/spyder-ide/pywinpty/issues/72) - Release 0.4.1
+
+In this release 2 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 74](https://github.com/spyder-ide/pywinpty/pull/74) - Add winpty binaries to Appveyor uploaded wheels
+
+In this release 1 pull request was closed.
+
+
+
+## Version 0.4 (2017/11/20)
+
+### Issues Closed
+
+* [Issue 71](https://github.com/spyder-ide/pywinpty/issues/71) - Release 0.4
+* [Issue 68](https://github.com/spyder-ide/pywinpty/issues/68) - Enable automatic wheel distribution using AppVeyor
+
+In this release 2 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 70](https://github.com/spyder-ide/pywinpty/pull/70) - PR: Omit init file from coverage and fix Readme coverage badge
+* [PR 69](https://github.com/spyder-ide/pywinpty/pull/69) - PR: Enable AppVeyor automatic wheel builds
+* [PR 67](https://github.com/spyder-ide/pywinpty/pull/67) - PR: PtyProcess Cleanup
+* [PR 65](https://github.com/spyder-ide/pywinpty/pull/65) - Add a file descriptor
+
+In this release 4 pull requests were closed.
+
+
+## Version 0.3 (2017/11/18)
+
+### Issues Closed
+
+* [Issue 63](https://github.com/spyder-ide/pywinpty/issues/63) - Implement a process wrapper
+* [Issue 59](https://github.com/spyder-ide/pywinpty/issues/59) - Access violation writing 0x0000000000000000
+
+In this release 2 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 62](https://github.com/spyder-ide/pywinpty/pull/62) - Implement a PtyProcess class
+* [PR 61](https://github.com/spyder-ide/pywinpty/pull/61) - PR: Define explicit calls to ReadFile and WriteFile
+
+In this release 2 pull requests were closed.
+
+
 ## Version 0.2.1 (2017/08/23)
 
 ### Issues Closed
