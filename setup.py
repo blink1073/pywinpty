@@ -30,11 +30,11 @@ def get_version(module='winpty'):
 
 
 try:
-    include_dirs = [os.environ['LIBRARY_INC']]
+    include_dirs = os.environ['LIBRARY_INC'].split(os.pathsep)
 except KeyError:
     include_dirs = []
 try:
-    library_dirs = [os.environ['LIBRARY_LIB']]
+    library_dirs = os.environ['LIBRARY_LIB'].split(os.pathsep)
 except KeyError:
     library_dirs = []
 
@@ -77,7 +77,7 @@ setup(
     ext_modules=ext_modules,
     packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
     setup_requires=['Cython'],
-    package_data=dict(winpty=['*.pyd', '*.dll', '*.exe']),
+    package_data=dict(winpty=['*.pyd']),
     install_requires=['backports.shutil_which;python_version<"3.0"'],
     classifiers=[
         'Development Status :: 4 - Beta', 'Intended Audience :: Developers',
