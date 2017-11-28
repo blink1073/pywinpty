@@ -77,7 +77,7 @@ setup(
     ext_modules=ext_modules,
     packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
     setup_requires=['Cython'],
-    package_data=dict(winpty=['*.pyd']),
+    package_data=dict(winpty=['*.pyd', '*.dll', '*.exe']),
     install_requires=['backports.shutil_which;python_version<"3.0"'],
     classifiers=[
         'Development Status :: 4 - Beta', 'Intended Audience :: Developers',
