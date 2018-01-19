@@ -1,3 +1,38 @@
+## Version 0.5.1 (2017/12/01)
+
+### Issues Closed
+
+* [Issue 83](https://github.com/spyder-ide/pywinpty/issues/83) - Release 0.5.1
+* [Issue 81](https://github.com/spyder-ide/pywinpty/issues/81) - Update instructions to build from source for Python 2
+* [Issue 77](https://github.com/spyder-ide/pywinpty/issues/77) - Why is the tarball so huge?
+
+In this release 3 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 82](https://github.com/spyder-ide/pywinpty/pull/82) - PR: Add Python 2.7 build notes
+* [PR 80](https://github.com/spyder-ide/pywinpty/pull/80) - Add trove classifier and note about VS Runtime
+* [PR 78](https://github.com/spyder-ide/pywinpty/pull/78) - PR: Do not include binaries in the tarball
+
+In this release 3 pull requests were closed.
+
+
+## Version 0.5 (2017/11/27)
+
+### Issues Closed
+
+* [Issue 76](https://github.com/spyder-ide/pywinpty/issues/76) - Release 0.5
+* [Issue 75](https://github.com/spyder-ide/pywinpty/issues/75) - Python 2.7 Support?
+
+In this release 2 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 66](https://github.com/spyder-ide/pywinpty/pull/66) - PR: Add Python 2 support
+
+In this release 1 pull request was closed.
+
+
 ## Version 0.4.1 (2017/11/23)
 
 ### Issues Closed

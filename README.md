@@ -46,7 +46,7 @@ You can install this library by using conda or pip package managers, as it follo
 
 Using conda (Recommended):
 ```bash
-conda install pywinpty -c spyder-ide
+conda install pywinpty -c conda-forge
 ```
 
 Using pip:
@@ -54,16 +54,17 @@ Using pip:
 pip install pywinpty
 ```
 
-Due to Visual Studio version incompatibilities, we currently only support Python 3.5 and 3.6
-versions. Both installation packages include the required winpty binaries.
+Note: If you install from pip and are using Python 2.7, you will need the
+Visual C++ Redistributable for Visual Studio 2015.
 
 ## Building from sources
-To build from sources you will need to open either a Visual Studio development prompt or execute
+To build from sources you will need to open either a Visual Studio 2015+ development prompt or execute
 the ``vcvarsall.bat`` script from a CMD/Powershell console, then you will need to setup the
 following environment variables:
 
 ```batch
 set DISTUTILS_USE_SDK=1
+set MSSdk=1
 set LIBRARY_INC=<Path to the folder that contains wintpty headers>
 set LIBRARY_LIB=<Path to the folder that contains wintpty library files>
 ```
@@ -80,6 +81,9 @@ If everything works correctly, you can install winpty by using ``pip``:
 ```bash
 pip install -U .
 ```
+
+Note that we require Visual Studio 2015+ even when using Python 2.7 because
+`winpty` uses C++11 syntax.
 
 ## Package usage
 Pywinpty offers a single python wrapper around winpty library functions. This implies that using a
@@ -103,13 +107,13 @@ cols, rows = 80, 25
 process = PTY(cols, rows)
 
 # Spawn a new console process, e.g., CMD
-process.spawn(r'C:\windows\system32\cmd.exe')
+process.spawn(ur'C:\windows\system32\cmd.exe')
 
 # Read console output (Unicode)
 process.read()
 
 # Write input to console (Unicode)
-process.write('Text')
+process.write(u'Text')
 
 # Resize console size
 new_cols, new_rows = 90, 30

@@ -1,12 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # Standard library imports
-from shutil import which
-from ctypes import WINFUNCTYPE, windll
-from ctypes.wintypes import BOOL, DWORD
 import codecs
 import os
-import re
 import shlex
 import signal
 import socket
@@ -15,8 +11,14 @@ import threading
 import time
 
 
+try:
+    from shutil import which
+except ImportError:
+    from backports.shutil_which import which
+
+
 # Local imports
-from .winpty_wrapper import PTY
+from .winpty_wrapper import PTY, PY2
 
 
 class PtyProcess(object):
@@ -25,12 +27,13 @@ class PtyProcess(object):
     The main constructor is the :meth:`spawn` classmethod.
     """
 
-    def __init__(self, pty, emit_cursors=True):
+    def __init__(self, pty):
         assert isinstance(pty, PTY)
         self.pty = pty
         self.pid = pty.pid
         self.closed = False
         self.flag_eof = False
+
         self.decoder = codecs.getincrementaldecoder('utf-8')(errors='strict')
 
         # Used by terminate() to give kernel time to update process status.
@@ -48,18 +51,15 @@ class PtyProcess(object):
 
         # Read from the pty in a thread.
         self._thread = threading.Thread(target=_read_in_thread,
-            args=(address, self.pty, emit_cursors))
+            args=(address, self.pty))
         self._thread.setDaemon(True)
         self._thread.start()
 
         self.fileobj, _ = self._server.accept()
         self.fd = self.fileobj.fileno()
 
-        self._echo_buf = []
-
     @classmethod
-    def spawn(cls, argv, cwd=None, env=None, dimensions=(24, 80),
-              emit_cursors=True):
+    def spawn(cls, argv, cwd=None, env=None, dimensions=(24, 80)):
         """Start the given command in a child process in a pseudo terminal.
 
         This does all the setting up the pty, and returns an instance of
@@ -100,12 +100,18 @@ class PtyProcess(object):
             envStrs.append('%s=%s' % (key, value))
         env = '\0'.join(envStrs) + '\0'
 
+        if PY2:
+            command = _unicode(command)
+            cwd = _unicode(cwd)
+            cmdline = _unicode(cmdline)
+            env = _unicode(env)
+
         if len(argv) == 1:
             proc.spawn(command, cwd=cwd, env=env)
         else:
             proc.spawn(command, cwd=cwd, env=env, cmdline=cmdline)
 
-        inst = cls(proc, emit_cursors)
+        inst = cls(proc)
         inst._winsize = dimensions
 
         # Set some informational attributes
@@ -145,6 +151,8 @@ class PtyProcess(object):
                     raise IOError('Could not terminate the child.')
             self.fd = -1
             self.closed = True
+            del self.pty
+            self.pty = None
 
     def __del__(self):
         """This makes sure that no system resources are left open. Python only
@@ -177,15 +185,11 @@ class PtyProcess(object):
         Can block if there is nothing to read. Raises :exc:`EOFError` if the
         terminal was closed.
         """
-        if self.flag_eof:
-            raise EOFError('Pty is closed')
-
-        with _allow_interrupt(self.close):
-            data = self.fileobj.recv(size)
-
+        data = self.fileobj.recv(size)
         if not data:
             self.flag_eof = True
             raise EOFError('Pty is closed')
+
         return self.decoder.decode(data, final=False)
 
     def readline(self):
@@ -194,9 +198,6 @@ class PtyProcess(object):
         Can block if there is nothing to read. Raises :exc:`EOFError` if the
         terminal was closed.
         """
-        if self.flag_eof:
-            raise EOFError('Pty is closed')
-
         buf = []
         while 1:
             try:
@@ -214,9 +215,10 @@ class PtyProcess(object):
         """
         if not self.isalive():
             raise EOFError('Pty is closed')
+        if PY2:
+            s = _unicode(s)
+
         success, nbytes = self.pty.write(s)
-        if self.echo:
-            self._echo_buf += [s]
         if not success:
             raise IOError('Write failed')
         return nbytes
@@ -294,13 +296,13 @@ class PtyProcess(object):
         It is the responsibility of the caller to ensure the eof is sent at the
         beginning of a line."""
         # Send control character 4 (Ctrl-D)
-        return self.pty.write('\x04'), '\x04'
+        self.pty.write('\x04'), '\x04'
 
     def sendintr(self):
         """This sends a SIGINT to the child. It does not require
         the SIGINT to be the first character on a line. """
         # Send control character 3 (Ctrl-C)
-        return self.pty.write('\x03'), '\x03'
+        self.pty.write('\x03'), '\x03'
 
     def eof(self):
         """This returns True if the EOF exception was ever raised.
@@ -319,18 +321,14 @@ class PtyProcess(object):
         self.pty.set_size(cols, rows)
 
 
-def _read_in_thread(address, pty, emit_cursors):
+def _read_in_thread(address, pty):
     """Read data from the pty in a thread.
     """
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect(address)
 
-    buf = b''
-    cursors = [b'\x1b[0K', b'\x1b[5G', b'\x1b[?25h', b'\x1b[?25l']
-    matcher = re.compile(rb'(\x1b\[?\??(\d+)?)\Z', re.MULTILINE)
-
     while 1:
-        data, buf = buf + pty.read(4096), b''
+        data = pty.read(4096)
 
         if not data and not pty.isalive():
             while not data and not pty.iseof():
@@ -343,20 +341,6 @@ def _read_in_thread(address, pty, emit_cursors):
                 except socket.error:
                     pass
                 break
-
-        if not emit_cursors:
-            # Check for a partial code in the buffer
-            match = matcher.search(data)
-            if match:
-                start = match.start()
-                data, buf = data[:start], data[start:]
-            for cursor in cursors:
-                data = data.replace(cursor, b'')
-
-        if not data:
-            time.sleep(0.1)
-            continue
-
         try:
             client.send(data)
         except socket.error:
@@ -383,35 +367,9 @@ def _get_address(default_port=20128):
     return ("127.0.0.1", default_port)
 
 
-class _allow_interrupt(object):
-    """Utility for fixing CTRL-C events on Windows.
-
-    See https://github.com/zeromq/pyzmq/blob/3c41c5dbb8a5b50447fff3f714947636da71c212/zmq/utils/win32.py
-    for details.
+def _unicode(s):
+    """Ensure that a string is Unicode on Python 2.
     """
-
-    def __init__(self, action=None):
-        kernel32 = windll.LoadLibrary('kernel32')
-        phandler_routine = WINFUNCTYPE(BOOL, DWORD)
-        self._handler = kernel32.SetConsoleCtrlHandler
-        self._handler.argtypes = (phandler_routine, BOOL)
-        self._handler.restype = BOOL
-
-        @phandler_routine
-        def handle(event):
-            if event == 0:  # CTRL_C_EVENT
-                action()
-            return 0
-        self._handle = handle
-
-    def __enter__(self):
-        """Install the custom CTRL-C handler."""
-        result = self._handler(self._handle, 1)
-        if result == 0:
-            raise WindowsError()
-
-    def __exit__(self, *args):
-        """Remove the custom CTRL-C handler."""
-        result = self._handler(self._handle, 0)
-        if result == 0:
-            raise WindowsError()
+    if isinstance(s, unicode):  # noqa E891
+        return s
+    return s.decode('utf-8')

@@ -76,12 +76,14 @@ setup(
     description='Python bindings for the winpty library',
     ext_modules=ext_modules,
     packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
-    include_package_data=True,
     setup_requires=['Cython'],
+    package_data=dict(winpty=['*.pyd', '*.dll', '*.exe']),
+    install_requires=['backports.shutil_which;python_version<"3.0"'],
     classifiers=[
         'Development Status :: 4 - Beta', 'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Operating System :: Microsoft :: Windows',
+        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6'
     ]
